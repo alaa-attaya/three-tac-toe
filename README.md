@@ -1,1 +1,1 @@
-# ThreeTacToe
+# Three-tac-toe
