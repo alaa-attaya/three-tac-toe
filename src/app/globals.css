@@ -1,18 +1,72 @@
 @import "tailwindcss" prefix(tw);
 
+@custom-variant light (&:where(.light, .light *));
+
 @theme {
-  --bneakpoint-*: initial;
   --breakpoint-sm: 480px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 976px;
+
+  --color-x: oklch(70% 0.3 330); /* Pink */
+  --color-o: oklch(80% 0.25 210); /* Blue */
+  --color-grid: oklch(30% 0.01 250);
+
+  --color-bg: oklch(10% 0 0);
+  --color-text: oklch(95% 0.02 0);
+  --color-topbar: oklch(15% 0 0);
+  --color-button-bg: oklch(20% 0 0);
+  --color-button-text: oklch(85% 0.3 330);
+  --color-title: oklch(85% 0.3 330);
+  --animate-neon-border: neon-border 8s ease-in-out infinite;
+  @keyframes neon-border {
+    0%,
+    100% {
+      border-color: oklch(60% 0.22 330);
+      box-shadow: 0 2px 4px oklch(60% 0.22 330);
+    }
+    50% {
+      border-color: oklch(55% 0.22 240);
+      box-shadow: 0 2px 4px oklch(55% 0.22 240);
+    }
+  }
+}
+
+@utility btn-primary {
+  border-radius: var(--tw-radius-xl);
+  background-color: var(--tw-color-button-bg);
+  color: var(--tw-color-button-text);
+  font-weight: var(--tw-font-weight-medium);
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: 1.5px solid var(--tw-color-button-text);
+  &:hover {
+    @media (hover: hover) {
+      filter: brightness(0.9);
+      transform: translateY(-1px);
+    }
+  }
 }
 
 :root {
   box-sizing: border-box;
-  background-color: #111111;
-  color: #ffffff;
+  background-color: var(--tw-color-bg);
+  color: var(--tw-color-text);
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root.light {
+  --tw-color-bg: oklch(98% 0 0);
+  --tw-color-text: oklch(20% 0 0);
+  --tw-color-topbar: oklch(96% 0 0);
+  --tw-color-button-bg: oklch(90% 0 0);
+  --tw-color-button-text: oklch(50% 0.3 330);
+  --tw-color-title: oklch(50% 0.3 330);
+  background-color: var(--tw-color-bg);
+  color: var(--tw-color-text);
+  color-scheme: light;
 }
 
 *,
