@@ -3,9 +3,10 @@
 @custom-variant light (&:where(.light, .light *));
 
 @theme {
-  --breakpoint-sm: 480px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 976px;
+  --breakpoint-*: initial;
+  --breakpoint-sm: 28rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 80rem;
 
   --color-x: oklch(70% 0.3 330); /* Pink */
   --color-o: oklch(80% 0.25 210); /* Blue */
@@ -14,19 +15,21 @@
   --color-bg: oklch(10% 0 0);
   --color-text: oklch(95% 0.02 0);
   --color-topbar: oklch(15% 0 0);
+  --color-screen: oklch(15% 0 0);
   --color-button-bg: oklch(20% 0 0);
   --color-button-text: oklch(85% 0.3 330);
+  --color-neon: oklch(85% 0.3 330);
   --color-title: oklch(85% 0.3 330);
   --animate-neon-border: neon-border 8s ease-in-out infinite;
   @keyframes neon-border {
     0%,
     100% {
       border-color: oklch(60% 0.22 330);
-      box-shadow: 0 2px 4px oklch(60% 0.22 330);
+      box-shadow: 0 4px 8px oklch(60% 0.22 330);
     }
     50% {
-      border-color: oklch(55% 0.22 240);
-      box-shadow: 0 2px 4px oklch(55% 0.22 240);
+      border-color: oklch(30% 0.22 330);
+      box-shadow: 0 4px 8px oklch(30% 0.22 330);
     }
   }
 }
@@ -40,11 +43,42 @@
   transition: all 0.2s ease-in-out;
   cursor: pointer;
   border: 1.5px solid var(--tw-color-button-text);
+  animation: var(--tw-animate-neon-border);
+
+  white-space: nowrap;
+
   &:hover {
     @media (hover: hover) {
       filter: brightness(0.9);
       transform: translateY(-1px);
     }
+  }
+}
+
+@utility btn-secondary {
+  border-radius: var(--tw-radius-xl);
+  background-color: var(--tw-color-button-bg);
+  color: var(--tw-color-button-text);
+  font-weight: var(--tw-font-weight-semibold);
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  width: 100%;
+  max-width: 12rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: 1.5px solid var(--tw-color-button-text);
+  text-align: left;
+  animation: var(--tw-animate-neon-border);
+  &:hover {
+    @media (hover: hover) {
+      filter: brightness(0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 10px rgb(0 0 0 / 0.3);
+    }
+  }
+  &:active {
+    transform: translateY(0);
+    filter: brightness(0.85);
   }
 }
 
@@ -56,14 +90,17 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 :root.light {
-  --tw-color-bg: oklch(98% 0 0);
-  --tw-color-text: oklch(20% 0 0);
-  --tw-color-topbar: oklch(96% 0 0);
-  --tw-color-button-bg: oklch(90% 0 0);
-  --tw-color-button-text: oklch(50% 0.3 330);
-  --tw-color-title: oklch(50% 0.3 330);
+  --tw-color-bg: oklch(85% 0.005 250);
+  --tw-color-topbar: oklch(87% 0.005 250);
+  --tw-color-screen: oklch(85% 0.005 250);
+
+  --tw-color-button-bg: oklch(90% 0.004 270);
+  --tw-color-button-text: oklch(45% 0.25 330);
+  --tw-color-title: oklch(45% 0.25 330);
+
+  --tw-color-text: oklch(28% 0.01 250);
+
   background-color: var(--tw-color-bg);
   color: var(--tw-color-text);
   color-scheme: light;
