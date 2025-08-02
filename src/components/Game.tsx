@@ -3,7 +3,9 @@ import { useState } from "react";
 import Menu from "./Menu/Menu";
 import Stats from "./Menu/Stats";
 import Leaderboard from "./Menu/Leaderboard";
-
+import LocalMultiplayer from "./Menu/LocalMultiplayer";
+import OnlineMultiplayer from "./Menu/OnlineMultiplayer";
+import VsComputer from "./Menu/VsComputer";
 type Scene =
   | "menu"
   | "stats"
@@ -20,9 +22,10 @@ export default function Game() {
       <div
         className="
           tw:relative
-          tw:w-[95vw]
+          tw:end:w-[95vw]
           tw:lg:w-[65vw]
-          tw:min-h-[60vh]
+          tw:min-h-[85vh]
+          tW:end:min-h-[70vh]
           tw:sm:min-h-[80vh]
           tw:bg-[color:var(--tw-color-screen)]
           tw:rounded-xl
@@ -30,15 +33,22 @@ export default function Game() {
           tw:border tw:border-[color:var(--tw-color-neon)]
           tw:border-t-[4px] tw:border-b-[4px] tw:border-l-[1px] tw:border-r-[1px]
           tw:animate-neon-border
+        
         "
       >
         {scene === "menu" && <Menu setScene={setScene} />}
-        {scene === "stats" && <Stats />}
-        {scene === "leaderboard" && <Leaderboard />}
-        {scene === "vs-computer" && <p>Coming Soon: Vs Computer</p>}
-        {scene === "local-multiplayer" && <p>Coming Soon: Local Multiplayer</p>}
+        {scene === "stats" && <Stats onBack={() => setScene("menu")} />}
+        {scene === "leaderboard" && (
+          <Leaderboard onBack={() => setScene("menu")} />
+        )}
+        {scene === "vs-computer" && (
+          <VsComputer onBack={() => setScene("menu")} />
+        )}
+        {scene === "local-multiplayer" && (
+          <LocalMultiplayer onBack={() => setScene("menu")} />
+        )}
         {scene === "online-multiplayer" && (
-          <p>Coming Soon: Online Multiplayer</p>
+          <OnlineMultiplayer onBack={() => setScene("menu")} />
         )}
       </div>
     </div>

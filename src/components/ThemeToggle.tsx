@@ -1,36 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useThemeStore } from "@/stores/themeStore";
 
 export default function ThemeToggle() {
-  const [isLight, setIsLight] = useState(false);
+  const isLight = useThemeStore((state) => state.isLight);
+  const toggle = useThemeStore((state) => state.toggle);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const explicit = stored === "light" || stored === "dark";
-    const useDark = explicit ? stored === "dark" : prefersDark;
-
-    root.classList.toggle("light", !useDark);
-    setIsLight(!useDark);
-  }, []);
-
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    const nowLight = !root.classList.contains("light");
-
-    root.classList.toggle("light", nowLight);
-    localStorage.setItem("theme", nowLight ? "light" : "dark");
-    setIsLight(nowLight);
-  };
+  if (isLight === null) return null;
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={toggle}
       aria-label="Toggle theme"
       className="tw:relative tw:w-10 tw:h-10 tw:btn-primary tw:flex tw:items-center tw:justify-center tw:overflow-hidden"
     >
@@ -40,11 +21,11 @@ export default function ThemeToggle() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 20, opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.1 }}
           className="tw:absolute"
         >
           {isLight ? (
-            <SunIcon className="tw:w-5 tw:h-5 " />
+            <SunIcon className="tw:w-5 tw:h-5" />
           ) : (
             <MoonIcon className="tw:w-5 tw:h-5" />
           )}
@@ -53,6 +34,7 @@ export default function ThemeToggle() {
     </button>
   );
 }
+
 function SunIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

@@ -1,5 +1,5 @@
 "use client";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore } from "@/stores/userStore";
 
 type Scene =
   | "menu"
@@ -17,7 +17,7 @@ export default function Menu({ setScene }: Props) {
   const username = useUserStore((state) => state.username);
 
   return (
-    <div className="tw:flex tw:flex-col tw:gap-4 tw:sm:gap-6  tw:items-center tw:mt-4">
+    <div className="tw:flex tw:flex-col tw:gap-4 tw:sm:gap-6 tw:py-2 tw:px-2 tw:items-center">
       <div className="tw:py-4 tw:px-4">
         <h2 className="tw:text-center tw:text-4xl tw:font-bold tw:text-[color:var(--tw-color-title)]">
           Menu
@@ -47,7 +47,7 @@ export default function Menu({ setScene }: Props) {
           className="tw:btn-secondary"
           onClick={() => {
             if (!username) {
-              alert("Please sign in to view your stats.");
+              setScene("stats");
               return;
             }
             setScene("stats");

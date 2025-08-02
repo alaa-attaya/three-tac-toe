@@ -4,14 +4,13 @@
 
 @theme {
   --breakpoint-*: initial;
+  --breakpoint-end: 22rem;
   --breakpoint-sm: 28rem;
   --breakpoint-md: 48rem;
-  --breakpoint-lg: 80rem;
+  --breakpoint-lg: 72rem;
 
-  --color-x: oklch(70% 0.3 330); /* Pink */
-  --color-o: oklch(80% 0.25 210); /* Blue */
-  --color-grid: oklch(30% 0.01 250);
-
+  --color-x: oklch(85% 0.3 330);
+  --color-o: oklch(45% 0.25 330);
   --color-bg: oklch(10% 0 0);
   --color-text: oklch(95% 0.02 0);
   --color-topbar: oklch(15% 0 0);
@@ -62,12 +61,10 @@
   font-weight: var(--tw-font-weight-semibold);
   padding: 1rem 1.25rem;
   font-size: 1.125rem;
-  width: 100%;
-  max-width: 12rem;
+  width: 12rem;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
   border: 1.5px solid var(--tw-color-button-text);
-  text-align: left;
   animation: var(--tw-animate-neon-border);
   &:hover {
     @media (hover: hover) {
@@ -80,6 +77,36 @@
     transform: translateY(0);
     filter: brightness(0.85);
   }
+}
+@utility btn-grid {
+  border-radius: var(--tw-radius-xl);
+  background-color: var(--tw-color-button-bg);
+  color: var(--tw-color-button-bg);
+  font-weight: var(--tw-font-weight-semibold);
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  width: 12rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: 1.5px solid var(--tw-color-button-text);
+  animation: var(--tw-animate-neon-border);
+  &:hover {
+    @media (hover: hover) {
+      filter: brightness(0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 10px rgb(0 0 0 / 0.3);
+    }
+  }
+  &:active {
+    transform: translateY(0);
+    filter: brightness(0.85);
+  }
+}
+
+html,
+body {
+  min-width: 22rem;
+  overflow-x: auto;
 }
 
 :root {
@@ -100,6 +127,9 @@
   --tw-color-title: oklch(45% 0.25 330);
 
   --tw-color-text: oklch(28% 0.01 250);
+  --tw-color-x: oklch(45% 0.25 330);
+  --tw-color-o: oklch(85% 0.3 330);
+  --tw-color-neon: oklch(45% 0.25 330);
 
   background-color: var(--tw-color-bg);
   color: var(--tw-color-text);

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import supabase from "@/lib/supabase";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore } from "@/stores/userStore";
 import { ProfileSchema } from "@/lib/validators";
 import ThemeToggle from "./ThemeToggle";
 import Link from "next/link";
