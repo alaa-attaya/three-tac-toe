@@ -9,7 +9,6 @@ export default function GameBoardVsComputer() {
   const [currentPlayer, setCurrentPlayer] = useState<Cell>("X");
   const [gameOver, setGameOver] = useState(true);
   const [winner, setWinner] = useState<Cell>(null);
-  const [totalTime, setTotalTime] = useState(60);
   const [winningLine, setWinningLine] = useState<number[] | null>(null);
   const [xMoves, setXMoves] = useState<number[]>([]);
   const [oMoves, setOMoves] = useState<number[]>([]);
@@ -18,12 +17,18 @@ export default function GameBoardVsComputer() {
   const [moveTimeLeft, setMoveTimeLeft] = useState(5);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const setIsGameRunning = useGameState((state) => state.setIsGameRunning);
-  const [computerPlayer, setComputerPlayer] = useState<Cell>("O");
-  const [humanPlayer, setHumanPlayer] = useState<Cell>("X");
   const [gameStarted, setGameStarted] = useState(false);
   const [startingPlayer, setStartingPlayer] = useState<Cell>("X");
+  const [playerSymbol, setPlayerSymbol] = useState<Cell>("X");
+  const [computerSymbol, setComputerSymbol] = useState<Cell>("O");
+  const [winnerSymbol, setWinnerSymbol] = useState<Cell | null>(null);
+  const [playerName, setPlayerName] = useState("Player");
+  const [computerName, setComputerName] = useState("Computer");
   useEffect(() => {
     if (!gameStarted || gameOver) return;
+    const Computertimer = setTimeout(() => {
+      makeComputerMove();
+    }, 400);
     setIsGameRunning(true);
     const initialTime = 5.05;
     setMoveTimeLeft(5);
@@ -48,52 +53,23 @@ export default function GameBoardVsComputer() {
 
     return () => {
       clearInterval(timerRef.current!);
+      clearTimeout(Computertimer);
       setIsGameRunning(false);
     };
-  }, [currentPlayer, gameOver, gameStarted, computerPlayer, setIsGameRunning]);
+  }, [currentPlayer, gameOver, gameStarted, setIsGameRunning]);
 
-  const handleMove = (i: number) => {
-    if (!gameStarted || gameOver || board[i]) return;
+  const handleMove = (i: number, isComputerMove = false) => {
+    if (
+      !gameStarted ||
+      gameOver ||
+      board[i] ||
+      (!isComputerMove && currentPlayer !== playerSymbol)
+    )
+      return;
 
     const updated = [...board];
     const playerMoves = currentPlayer === "X" ? xMoves : oMoves;
     let newMoves = [...playerMoves];
-    const makeComputerMove = () => {
-      if (currentPlayer !== "O" || gameOver) return;
-
-      const emptyIndices = board
-        .map((cell, index) => (cell === null ? index : null))
-        .filter((i) => i !== null) as number[];
-
-      // Try winning
-      for (const index of emptyIndices) {
-        const copy = [...board];
-        copy[index] = "O";
-        if (getWinningLine(copy, "O")) {
-          handleMove(index);
-          return;
-        }
-      }
-
-      // Try blocking X win
-      for (const index of emptyIndices) {
-        const copy = [...board];
-        copy[index] = "X";
-        if (getWinningLine(copy, "X")) {
-          handleMove(index);
-          return;
-        }
-      }
-
-      // Smart placement — prioritize center or corner
-      const preferred = [4, 0, 2, 6, 8, 1, 3, 5, 7];
-      for (const index of preferred) {
-        if (emptyIndices.includes(index)) {
-          handleMove(index);
-          return;
-        }
-      }
-    };
 
     if (newMoves.length === 3) {
       const oldest = newMoves.shift()!;
@@ -118,14 +94,13 @@ export default function GameBoardVsComputer() {
   const endGame = (winner: Cell) => {
     setGameOver(true);
     setWinner(winner);
-
-    if (winner === "X") {
+    setWinnerSymbol(winner);
+    if (winner === playerSymbol) {
       setUserWins((w) => w + 1);
-      setStartingPlayer("X");
-    }
-    if (winner === "O") {
+      setStartingPlayer(playerSymbol);
+    } else if (winner === computerSymbol) {
       setComputerWins((w) => w + 1);
-      setStartingPlayer("O");
+      setStartingPlayer(computerSymbol);
     }
   };
 
@@ -151,15 +126,149 @@ export default function GameBoardVsComputer() {
     setCurrentPlayer(startingPlayer);
     setGameOver(false);
     setWinner(null);
-    setTotalTime(60);
+
     setWinningLine(null);
     setXMoves([]);
     setOMoves([]);
   };
+  // Computer Logic
+  const evaluateBoard = (board: Cell[], ai: Cell, player: Cell): number => {
+    const win = getWinningLine(board, ai);
+    const lose = getWinningLine(board, player);
+    if (win) return 1000;
+    if (lose) return -1000;
+
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8], // rows
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8], // cols
+      [0, 4, 8],
+      [2, 4, 6], // diags
+    ];
+
+    let score = 0;
+
+    for (const [a, b, c] of lines) {
+      const line = [board[a], board[b], board[c]];
+      const aiCount = line.filter((cell) => cell === ai).length;
+      const playerCount = line.filter((cell) => cell === player).length;
+
+      if (aiCount === 2 && playerCount === 0) score += 5;
+      if (aiCount === 1 && playerCount === 0) score += 2;
+
+      if (playerCount === 2 && aiCount === 0) score -= 5;
+      if (playerCount === 1 && aiCount === 0) score -= 2;
+    }
+
+    // Center control
+    if (board[4] === ai) score += 1;
+    else if (board[4] === player) score -= 1;
+
+    return score;
+  };
+
+  const getBestMove = (
+    board: Cell[],
+    ai: Cell,
+    player: Cell,
+    xMoves: number[],
+    oMoves: number[],
+    depth: number,
+    alpha: number,
+    beta: number,
+    maximizing: boolean
+  ): { index: number; score: number } => {
+    const winner = getWinningLine(board, ai) || getWinningLine(board, player);
+    if (depth === 6 || winner) {
+      return {
+        index: -1,
+        score: evaluateBoard(board, ai, player),
+      };
+    }
+
+    const emptyIndices = board
+      .map((cell, i) => (cell === null ? i : null))
+      .filter((i): i is number => i !== null);
+
+    const aiMoves = ai === "X" ? xMoves : oMoves;
+    const plMoves = player === "X" ? xMoves : oMoves;
+
+    let bestScore = maximizing ? -Infinity : Infinity;
+    let bestIndex = -1;
+
+    for (const index of emptyIndices) {
+      const simulated = [...board];
+      const newAiMoves = [...aiMoves];
+      const newPlMoves = [...plMoves];
+
+      if (maximizing && newAiMoves.length === 3) {
+        const removed = newAiMoves.shift()!;
+        simulated[removed] = null;
+      } else if (!maximizing && newPlMoves.length === 3) {
+        const removed = newPlMoves.shift()!;
+        simulated[removed] = null;
+      }
+
+      simulated[index] = maximizing ? ai : player;
+
+      const { score } = getBestMove(
+        simulated,
+        ai,
+        player,
+        ai === "X" ? newAiMoves.concat(index) : xMoves,
+        player === "X" ? newPlMoves.concat(index) : oMoves,
+        depth + 1,
+        alpha,
+        beta,
+        !maximizing
+      );
+
+      if (maximizing) {
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+        alpha = Math.max(alpha, score);
+      } else {
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+        beta = Math.min(beta, score);
+      }
+
+      if (beta <= alpha) break;
+    }
+
+    return { index: bestIndex, score: bestScore };
+  };
+
+  const makeComputerMove = () => {
+    if (currentPlayer !== computerSymbol || gameOver || !gameStarted) return;
+
+    const best = getBestMove(
+      board,
+      computerSymbol,
+      playerSymbol,
+      xMoves,
+      oMoves,
+      0,
+      -Infinity,
+      Infinity,
+      true
+    );
+
+    if (best.index !== -1) {
+      setTimeout(() => handleMove(best.index, true), 300);
+    }
+  };
 
   return (
     <div className="tw:flex tw:flex-col tw:items-center tw:gap-4 tw:sm:gap-6 tw:w-full">
-      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-4">
+      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-2">
         {/* Usernames */}
         <div
           className={`tw:flex  tw:justify-between
@@ -170,13 +279,13 @@ export default function GameBoardVsComputer() {
             className="tw:flex tw:flex-1 tw:justify-start tw:gap-4 tw:text-[color:var(--tw-color-x)] 
             tw:w-26 tw:sm:w-30 tw:md:w-36 tw:lg:w-48 "
           >
-            <span className="tw:flex tw:flex-1 tw:truncate">X</span>
+            <span className="tw:flex tw:flex-1 tw:truncate">{playerName}</span>
           </span>
           <span
             className="tw:flex tw:flex-1 tw:gap-4 tw:justify-end tw:text-[color:var(--tw-color-o)]  
                 tw:w-26  tw:sm:w-30 tw:md:w-36 tw:lg:w-48 "
           >
-            <span className="tw:flex tw:truncate">Computer</span>
+            <span className="tw:flex tw:truncate">{computerName}</span>
           </span>
         </div>
         {/* Scoreboard */}
@@ -225,8 +334,10 @@ export default function GameBoardVsComputer() {
                }`}
           >
             {gameOver
-              ? winner
-                ? `Player ${winner} wins!`
+              ? winnerSymbol
+                ? winnerSymbol === playerSymbol
+                  ? `${playerName} wins!`
+                  : `${computerName} wins!`
                 : ""
               : `Turn: ${currentPlayer}`}
           </div>

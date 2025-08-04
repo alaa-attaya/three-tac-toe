@@ -120,7 +120,7 @@ export default function GameBoardLocal() {
 
   return (
     <div className="tw:flex tw:flex-col tw:items-center tw:gap-4 tw:sm:gap-6 tw:w-full">
-      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-4">
+      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-2">
         {/* Scoreboard */}
 
         <div

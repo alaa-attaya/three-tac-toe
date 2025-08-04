@@ -9,7 +9,7 @@ export default function GameBoardOnline() {
   const [currentPlayer, setCurrentPlayer] = useState<Cell>("X");
   const [gameOver, setGameOver] = useState(true);
   const [winner, setWinner] = useState<Cell>(null);
-  const [totalTime, setTotalTime] = useState(60);
+
   const [winningLine, setWinningLine] = useState<number[] | null>(null);
   const [xMoves, setXMoves] = useState<number[]>([]);
   const [oMoves, setOMoves] = useState<number[]>([]);
@@ -18,8 +18,7 @@ export default function GameBoardOnline() {
   const [moveTimeLeft, setMoveTimeLeft] = useState(5);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const setIsGameRunning = useGameState((state) => state.setIsGameRunning);
-  const [computerPlayer, setComputerPlayer] = useState<Cell>(null);
-  const [humanPlayer, setHumanPlayer] = useState<Cell>(null);
+
   const [gameStarted, setGameStarted] = useState(false);
   const [startingPlayer, setStartingPlayer] = useState<Cell>("X");
   useEffect(() => {
@@ -115,7 +114,7 @@ export default function GameBoardOnline() {
     setCurrentPlayer(startingPlayer);
     setGameOver(false);
     setWinner(null);
-    setTotalTime(60);
+
     setWinningLine(null);
     setXMoves([]);
     setOMoves([]);
@@ -123,7 +122,7 @@ export default function GameBoardOnline() {
 
   return (
     <div className="tw:flex tw:flex-col tw:items-center tw:gap-4 tw:sm:gap-6 tw:w-full">
-      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-4">
+      <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-2">
         {/* Usernames */}
         <div
           className={`tw:flex  tw:justify-between
