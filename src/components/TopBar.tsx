@@ -44,9 +44,13 @@ export default function TopBar() {
       <div className="tw:flex tw:items-center tw:gap-4">
         <ThemeToggle />
         {username ? (
-          <button className="tw:btn-primary">{username}</button>
+          <button type="button" className="tw:btn-primary">
+            {username}
+          </button>
         ) : (
-          <button className="tw:btn-primary">Sign In</button>
+          <button type="button" className="tw:btn-primary">
+            Sign In
+          </button>
         )}
       </div>
     </header>

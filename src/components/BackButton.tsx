@@ -1,9 +1,10 @@
 "use client";
-
+import { useGameState } from "@/stores/gameState";
 type Props = {
   onClick: () => void;
   className?: string;
 };
+
 function BackIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -22,10 +23,16 @@ function BackIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function BackButton({ onClick, className = "" }: Props) {
+  const isGameRunning = useGameState((state) => state.isGameRunning);
   return (
     <button
-      onClick={onClick}
-      className={`tw:btn-secondary tw:w-12 tw:h-10 tw:flex tw:items-center tw:justify-center tw:text-[color:var(--tw-color-button-text)] ${className}`}
+      type="button"
+      onClick={isGameRunning ? undefined : onClick}
+      disabled={isGameRunning}
+      className={`tw:btn-secondary tw:w-12 tw:h-10 tw:flex tw:items-center tw:justify-center tw:text-[color:var(--tw-color-button-text)]
+        ${
+          isGameRunning ? "tw:opacity-50 tw:cursor-not-allowed" : ""
+        } ${className}`}
       aria-label="Back"
     >
       <div>

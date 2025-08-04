@@ -1,5 +1,5 @@
 "use client";
-import GameBoard from "@/components/GameBoard";
+import GameBoardVsComputer from "@/components/GameBoardVsComputer";
 import BackButton from "@/components/BackButton";
 
 type Props = {
@@ -8,10 +8,10 @@ type Props = {
 
 export default function VsComputer({ onBack }: Props) {
   return (
-    <div className="tw:flex tw:flex-col tw:gap-4 tw:h-full tw:w-full tw:py-2 tw:px-2">
+    <div className="tw:flex tw:flex-col tw:gap-8 tw:h-full tw:w-full tw:py-2 tw:px-2">
       <BackButton onClick={onBack} />
 
-      <GameBoard mode="vs-computer" />
+      <GameBoardVsComputer />
     </div>
   );
 }

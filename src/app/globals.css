@@ -102,6 +102,10 @@
     filter: brightness(0.85);
   }
 }
+@utility grid-display {
+  color: var(--tw-color-title);
+  font-weight: var(--tw-font-weight-semibold);
+}
 
 html,
 body {

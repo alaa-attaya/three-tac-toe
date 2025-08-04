@@ -26,24 +26,28 @@ export default function Menu({ setScene }: Props) {
 
       <div className="tw:flex tw:flex-col tw:items-center tw:justify-center tw:gap-4 tw:sm:gap-6  tw:px-8 tw:py-8 tw:w-full">
         <button
+          type="button"
           className="tw:btn-secondary"
           onClick={() => setScene("online-multiplayer")}
         >
           Online
         </button>
         <button
+          type="button"
           className="tw:btn-secondary"
           onClick={() => setScene("local-multiplayer")}
         >
           Local
         </button>
         <button
+          type="button"
           className="tw:btn-secondary"
           onClick={() => setScene("vs-computer")}
         >
           Computer
         </button>
         <button
+          type="button"
           className="tw:btn-secondary"
           onClick={() => {
             if (!username) {
@@ -56,6 +60,7 @@ export default function Menu({ setScene }: Props) {
           Stats
         </button>
         <button
+          type="button"
           className="tw:btn-secondary"
           onClick={() => setScene("leaderboard")}
         >
