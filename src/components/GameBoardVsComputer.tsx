@@ -26,9 +26,8 @@ export default function GameBoardVsComputer() {
   const [computerName, setComputerName] = useState("Computer");
   useEffect(() => {
     if (!gameStarted || gameOver) return;
-    const Computertimer = setTimeout(() => {
-      makeComputerMove();
-    }, 400);
+    const Computertimer = makeComputerMove();
+
     setIsGameRunning(true);
     const initialTime = 5.05;
     setMoveTimeLeft(5);
@@ -53,7 +52,6 @@ export default function GameBoardVsComputer() {
 
     return () => {
       clearInterval(timerRef.current!);
-      clearTimeout(Computertimer);
       setIsGameRunning(false);
     };
   }, [currentPlayer, gameOver, gameStarted, setIsGameRunning]);
@@ -294,7 +292,7 @@ export default function GameBoardVsComputer() {
     );
 
     if (best.index !== -1) {
-      setTimeout(() => handleMove(best.index, true), 300);
+      setTimeout(() => handleMove(best.index, true), 500);
     }
   };
 
