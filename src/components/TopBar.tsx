@@ -6,11 +6,16 @@ import { useUserStore } from "@/stores/userStore";
 import { ProfileSchema } from "@/lib/validators";
 import ThemeToggle from "./ThemeToggle";
 import Link from "next/link";
+import { useGameState } from "@/stores/gameState";
+import { useSceneStore } from "@/stores/sceneStore";
 
 export default function TopBar() {
   const username = useUserStore((state) => state.username);
   const setUsername = useUserStore((state) => state.setUsername);
-
+  const isGameRunning = useGameState((state) => state.isGameRunning);
+  const setScene = useSceneStore((state) => state.setScene);
+  const onUserClick = () => setScene("settings");
+  const onSigninClick = () => setScene("signin");
   useEffect(() => {
     async function loadUsername() {
       const {
@@ -44,11 +49,25 @@ export default function TopBar() {
       <div className="tw:flex tw:items-center tw:gap-4">
         <ThemeToggle />
         {username ? (
-          <button type="button" className="tw:btn-primary">
+          <button
+            onClick={isGameRunning ? undefined : onUserClick}
+            disabled={isGameRunning}
+            type="button"
+            className={`tw:btn-primary  ${
+              isGameRunning ? " tw:cursor-not-allowed" : ""
+            }`}
+          >
             {username}
           </button>
         ) : (
-          <button type="button" className="tw:btn-primary">
+          <button
+            onClick={isGameRunning ? undefined : onSigninClick}
+            disabled={isGameRunning}
+            type="button"
+            className={`tw:btn-primary  ${
+              isGameRunning ? " tw:cursor-not-allowed" : ""
+            }`}
+          >
             Sign In
           </button>
         )}

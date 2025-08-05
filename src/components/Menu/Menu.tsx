@@ -1,19 +1,10 @@
 "use client";
 import { useUserStore } from "@/stores/userStore";
+import { useSceneStore } from "@/stores/sceneStore";
 
-type Scene =
-  | "menu"
-  | "leaderboard"
-  | "vs-computer"
-  | "local-multiplayer"
-  | "online-multiplayer";
-
-type Props = {
-  setScene: (scene: Scene) => void;
-};
-
-export default function Menu({ setScene }: Props) {
+export default function Menu() {
   const username = useUserStore((state) => state.username);
+  const setScene = useSceneStore((state) => state.setScene);
 
   return (
     <div className="tw:flex tw:flex-col tw:gap-4 tw:sm:gap-6 tw:py-2 tw:px-2 tw:items-center">

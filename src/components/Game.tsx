@@ -1,19 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useSceneStore } from "@/stores/sceneStore";
 import Menu from "./Menu/Menu";
 import Leaderboard from "./Menu/Leaderboard";
 import LocalMultiplayer from "./Menu/LocalMultiplayer";
 import OnlineMultiplayer from "./Menu/OnlineMultiplayer";
 import VsComputer from "./Menu/VsComputer";
-type Scene =
-  | "menu"
-  | "leaderboard"
-  | "vs-computer"
-  | "local-multiplayer"
-  | "online-multiplayer";
+import Settings from "./Settings";
+import Signin from "./Signin";
 
 export default function Game() {
-  const [scene, setScene] = useState<Scene>("menu");
+  const scene = useSceneStore((state) => state.scene);
+  const setScene = useSceneStore((state) => state.setScene);
 
   return (
     <div className="tw:flex tw:flex-col tw:items-center tw:justify-center tw:px-4 tw:w-full tw:gap-6">
@@ -34,7 +31,7 @@ export default function Game() {
         
         "
       >
-        {scene === "menu" && <Menu setScene={setScene} />}
+        {scene === "menu" && <Menu />}
         {scene === "leaderboard" && (
           <Leaderboard onBack={() => setScene("menu")} />
         )}
@@ -47,6 +44,8 @@ export default function Game() {
         {scene === "online-multiplayer" && (
           <OnlineMultiplayer onBack={() => setScene("menu")} />
         )}
+        {scene === "signin" && <Signin onBack={() => setScene("menu")} />}
+        {scene === "settings" && <Settings onBack={() => setScene("menu")} />}
       </div>
     </div>
   );
