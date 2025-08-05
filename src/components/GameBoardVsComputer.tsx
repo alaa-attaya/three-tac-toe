@@ -131,62 +131,74 @@ export default function GameBoardVsComputer() {
     setXMoves([]);
     setOMoves([]);
   };
-  // Computer Logic
+
+  //  Evaluation function
   const evaluateBoard = (board: Cell[], ai: Cell, player: Cell): number => {
     const win = getWinningLine(board, ai);
     const lose = getWinningLine(board, player);
-    if (win) return 1000;
-    if (lose) return -1000;
+    if (win) return 10000;
+    if (lose) return -10000;
 
     const lines = [
       [0, 1, 2],
       [3, 4, 5],
-      [6, 7, 8], // rows
+      [6, 7, 8],
       [0, 3, 6],
       [1, 4, 7],
-      [2, 5, 8], // cols
+      [2, 5, 8],
       [0, 4, 8],
-      [2, 4, 6], // diags
+      [2, 4, 6],
     ];
 
     let score = 0;
 
-    for (const [a, b, c] of lines) {
-      const line = [board[a], board[b], board[c]];
-      const aiCount = line.filter((cell) => cell === ai).length;
-      const playerCount = line.filter((cell) => cell === player).length;
+    for (const line of lines) {
+      const values = line.map((i) => board[i]);
+      const aiCount = values.filter((v) => v === ai).length;
+      const playerCount = values.filter((v) => v === player).length;
 
-      if (aiCount === 2 && playerCount === 0) score += 5;
-      if (aiCount === 1 && playerCount === 0) score += 2;
-
-      if (playerCount === 2 && aiCount === 0) score -= 5;
-      if (playerCount === 1 && aiCount === 0) score -= 2;
+      if (aiCount > 0 && playerCount === 0) {
+        score += aiCount * aiCount * 10;
+      } else if (playerCount > 0 && aiCount === 0) {
+        score -= playerCount * playerCount * 8;
+      }
     }
 
-    // Center control
-    if (board[4] === ai) score += 1;
-    else if (board[4] === player) score -= 1;
+    // Center bonus
+    if (board[4] === ai) score += 15;
+    else if (board[4] === player) score -= 15;
+
+    // Corners bonus
+    const corners = [0, 2, 6, 8];
+    for (let i of corners) {
+      if (board[i] === ai) score += 4;
+      else if (board[i] === player) score -= 4;
+    }
 
     return score;
   };
 
+  // Full-depth Minimax with Alpha-Beta pruning and depth penalty
   const getBestMove = (
     board: Cell[],
     ai: Cell,
     player: Cell,
     xMoves: number[],
     oMoves: number[],
-    depth: number,
     alpha: number,
     beta: number,
-    maximizing: boolean
+    maximizing: boolean,
+    depth: number = 0
   ): { index: number; score: number } => {
-    const winner = getWinningLine(board, ai) || getWinningLine(board, player);
-    if (depth === 6 || winner) {
-      return {
-        index: -1,
-        score: evaluateBoard(board, ai, player),
-      };
+    const aiWin = getWinningLine(board, ai);
+    const playerWin = getWinningLine(board, player);
+    const isDraw = !board.includes(null);
+
+    if (aiWin || playerWin || isDraw) {
+      const baseScore = evaluateBoard(board, ai, player);
+      // Prefer faster wins / slower losses
+      const adjustedScore = baseScore + (baseScore > 0 ? -depth : depth);
+      return { index: -1, score: adjustedScore };
     }
 
     const emptyIndices = board
@@ -214,17 +226,37 @@ export default function GameBoardVsComputer() {
 
       simulated[index] = maximizing ? ai : player;
 
-      const { score } = getBestMove(
+      const nextXMoves =
+        ai === "X"
+          ? maximizing
+            ? newAiMoves.concat(index)
+            : newPlMoves
+          : maximizing
+          ? newPlMoves
+          : newAiMoves.concat(index);
+
+      const nextOMoves =
+        ai === "O"
+          ? maximizing
+            ? newAiMoves.concat(index)
+            : newPlMoves
+          : maximizing
+          ? newPlMoves
+          : newAiMoves.concat(index);
+
+      const result = getBestMove(
         simulated,
         ai,
         player,
-        ai === "X" ? newAiMoves.concat(index) : xMoves,
-        player === "X" ? newPlMoves.concat(index) : oMoves,
-        depth + 1,
+        nextXMoves,
+        nextOMoves,
         alpha,
         beta,
-        !maximizing
+        !maximizing,
+        depth + 1
       );
+
+      const score = result.score;
 
       if (maximizing) {
         if (score > bestScore) {
@@ -246,6 +278,7 @@ export default function GameBoardVsComputer() {
     return { index: bestIndex, score: bestScore };
   };
 
+  // Triggers AI move
   const makeComputerMove = () => {
     if (currentPlayer !== computerSymbol || gameOver || !gameStarted) return;
 
@@ -255,7 +288,6 @@ export default function GameBoardVsComputer() {
       playerSymbol,
       xMoves,
       oMoves,
-      0,
       -Infinity,
       Infinity,
       true
