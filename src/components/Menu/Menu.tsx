@@ -3,7 +3,6 @@ import { useUserStore } from "@/stores/userStore";
 
 type Scene =
   | "menu"
-  | "stats"
   | "leaderboard"
   | "vs-computer"
   | "local-multiplayer"
@@ -45,19 +44,6 @@ export default function Menu({ setScene }: Props) {
           onClick={() => setScene("vs-computer")}
         >
           Computer
-        </button>
-        <button
-          type="button"
-          className="tw:btn-secondary"
-          onClick={() => {
-            if (!username) {
-              setScene("stats");
-              return;
-            }
-            setScene("stats");
-          }}
-        >
-          Stats
         </button>
         <button
           type="button"

@@ -1,14 +1,12 @@
 "use client";
 import { useState } from "react";
 import Menu from "./Menu/Menu";
-import Stats from "./Menu/Stats";
 import Leaderboard from "./Menu/Leaderboard";
 import LocalMultiplayer from "./Menu/LocalMultiplayer";
 import OnlineMultiplayer from "./Menu/OnlineMultiplayer";
 import VsComputer from "./Menu/VsComputer";
 type Scene =
   | "menu"
-  | "stats"
   | "leaderboard"
   | "vs-computer"
   | "local-multiplayer"
@@ -37,7 +35,6 @@ export default function Game() {
         "
       >
         {scene === "menu" && <Menu setScene={setScene} />}
-        {scene === "stats" && <Stats onBack={() => setScene("menu")} />}
         {scene === "leaderboard" && (
           <Leaderboard onBack={() => setScene("menu")} />
         )}
