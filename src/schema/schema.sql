@@ -97,17 +97,17 @@ ALTER TABLE leaderboard ENABLE ROW LEVEL SECURITY;
 
 -- Profiles
 CREATE POLICY "Users can select their own profile"
-  ON profiles FOR SELECT USING (id = auth.uid());
+  ON profiles FOR SELECT USING (id = (select auth.uid()));
 CREATE POLICY "Users can insert their own profile"
-  ON profiles FOR INSERT WITH CHECK (id = auth.uid());
+  ON profiles FOR INSERT WITH CHECK (id = (select auth.uid()));
 CREATE POLICY "Users can update their own profile"
-  ON profiles FOR UPDATE USING (id = auth.uid());
+  ON profiles FOR UPDATE USING (id = (select auth.uid()));
 
 -- Games
 CREATE POLICY "Users can see games they participate in"
   ON games FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = auth.uid()
+      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = (select auth.uid())
     )
   );
 CREATE POLICY "Users can insert games"
@@ -115,37 +115,36 @@ CREATE POLICY "Users can insert games"
 CREATE POLICY "Users can update games they participate in"
   ON games FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = auth.uid()
+      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = (select auth.uid())
     )
   );
 
 -- Game Participants
 CREATE POLICY "Users can select their own game participations"
-  ON game_participants FOR SELECT USING (user_id = auth.uid());
+  ON game_participants FOR SELECT USING (user_id = (select auth.uid()));
 CREATE POLICY "Users can insert their own game participation"
-  ON game_participants FOR INSERT WITH CHECK (user_id = auth.uid());
+  ON game_participants FOR INSERT WITH CHECK (user_id = (select auth.uid()));
 CREATE POLICY "Users can update their own game participation"
-  ON game_participants FOR UPDATE USING (user_id = auth.uid());
+  ON game_participants FOR UPDATE USING (user_id = (select auth.uid()));
 
 -- Game Moves
 CREATE POLICY "Users can select their own game moves"
   ON game_moves FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = auth.uid()
+      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = (select auth.uid())
     )
   );
 CREATE POLICY "Users can insert their own game moves"
   ON game_moves FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = auth.uid()
+      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = (select auth.uid())
     )
   );
 
-
 -- Leaderboard
 CREATE POLICY "Users can select their own leaderboard entry"
-  ON leaderboard FOR SELECT USING (profile_id = auth.uid());
+  ON leaderboard FOR SELECT USING (profile_id = (select auth.uid()));
 CREATE POLICY "Users can insert leaderboard entries"
-  ON leaderboard FOR INSERT WITH CHECK (profile_id = auth.uid());
+  ON leaderboard FOR INSERT WITH CHECK (profile_id = (select auth.uid()));
 CREATE POLICY "Users can update their own leaderboard entry"
-  ON leaderboard FOR UPDATE USING (profile_id = auth.uid());
+  ON leaderboard FOR UPDATE USING (profile_id = (select auth.uid()));
