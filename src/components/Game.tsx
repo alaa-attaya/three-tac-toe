@@ -2,7 +2,6 @@
 import { useSceneStore } from "@/stores/sceneStore";
 import Menu from "./Menu/Menu";
 import LocalMultiplayer from "./Menu/LocalMultiplayer";
-import OnlineMultiplayer from "./Menu/OnlineMultiplayer";
 import VsComputer from "./Menu/VsComputer";
 
 export default function Game() {
@@ -32,9 +31,6 @@ export default function Game() {
         )}
         {scene === "local-multiplayer" && (
           <LocalMultiplayer onBack={() => setScene("menu")} />
-        )}
-        {scene === "online-multiplayer" && (
-          <OnlineMultiplayer onBack={() => setScene("menu")} />
         )}
       </div>
     </div>

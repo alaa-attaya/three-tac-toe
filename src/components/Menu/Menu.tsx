@@ -17,13 +17,6 @@ export default function Menu() {
         <button
           type="button"
           className="tw:btn-secondary"
-          onClick={() => setScene("online-multiplayer")}
-        >
-          Online
-        </button>
-        <button
-          type="button"
-          className="tw:btn-secondary"
           onClick={() => setScene("local-multiplayer")}
         >
           Local

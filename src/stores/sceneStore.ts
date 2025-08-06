@@ -1,10 +1,6 @@
 import { create } from "zustand";
 
-export type Scene =
-  | "menu"
-  | "vs-computer"
-  | "local-multiplayer"
-  | "online-multiplayer";
+export type Scene = "menu" | "vs-computer" | "local-multiplayer";
 
 interface SceneState {
   scene: Scene;

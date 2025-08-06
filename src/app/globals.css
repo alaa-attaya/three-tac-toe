@@ -54,6 +54,26 @@
   }
 }
 
+@utility input-txt {
+  border-radius: var(--tw-radius-xl);
+  background-color: var(--tw-color-button-bg);
+  color: var(--tw-color-button-text);
+  font-weight: var(--tw-font-weight-semibold);
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  width: 12rem;
+  transition: all 0.2s ease-in-out;
+  border: 1.5px solid var(--tw-color-button-text);
+  animation: var(--tw-animate-neon-border);
+  &:hover,
+  &:focus {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    outline: none;
+    border-color: var(--tw-color-button-text);
+  }
+}
+
 @utility btn-secondary {
   border-radius: var(--tw-radius-xl);
   background-color: var(--tw-color-button-bg);
