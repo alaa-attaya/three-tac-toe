@@ -67,7 +67,7 @@ export default function GameBoardVsComputer() {
 
     const updated = [...board];
     const playerMoves = currentPlayer === "X" ? xMoves : oMoves;
-    let newMoves = [...playerMoves];
+    const newMoves = [...playerMoves];
 
     if (newMoves.length === 3) {
       const oldest = newMoves.shift()!;
@@ -168,7 +168,7 @@ export default function GameBoardVsComputer() {
 
     // Corners bonus
     const corners = [0, 2, 6, 8];
-    for (let i of corners) {
+    for (const i of corners) {
       if (board[i] === ai) score += 4;
       else if (board[i] === player) score -= 4;
     }

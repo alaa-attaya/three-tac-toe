@@ -54,7 +54,7 @@ export default function GameBoardLocal() {
 
     const updated = [...board];
     const playerMoves = currentPlayer === "X" ? xMoves : oMoves;
-    let newMoves = [...playerMoves];
+    const newMoves = [...playerMoves];
 
     if (newMoves.length === 3) {
       const oldest = newMoves.shift()!;
@@ -125,7 +125,7 @@ export default function GameBoardLocal() {
         <div
           className={`tw:flex  tw:justify-between
                tw:gap-4 tw:font-semibold tw:grid-display
-               tw:text-base tw:sm:text-lg tw:md:text-xl tw:lg:text-2xl`}
+           tw:text-base tw:sm:text-lg tw:md:text-xl tw:lg:text-2xl`}
         >
           <span
             className="tw:flex tw:flex-1 tw:justify-start tw:gap-4 tw:text-[color:var(--tw-color-x)] 
