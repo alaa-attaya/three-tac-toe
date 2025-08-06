@@ -1,150 +1,201 @@
--- ENUMS for game modes and status
-CREATE TYPE game_mode AS ENUM ('multiplayer_online', 'multiplayer_local', 'computer');
-CREATE TYPE game_status AS ENUM ('in_progress', 'completed');
+-- ENUM: player roles
+create type player_role as enum ('X', 'O');
 
--- Trigger function to auto-update 'updated_at' timestamp with fixed search_path
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql
-SET search_path = public, pg_catalog;
+-- =====================================
+-- ============ TABLES =================
+-- =====================================
 
--- PROFILES table: stores user info and stats
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username TEXT UNIQUE NOT NULL CHECK (length(username) > 2),
-  wins_multiplayer_online INT DEFAULT 0,
-  losses_multiplayer_online INT DEFAULT 0,
-  draws_multiplayer_online INT DEFAULT 0,
-  wins_computer INT DEFAULT 0,
-  losses_computer INT DEFAULT 0,
-  draws_computer INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  misc JSONB DEFAULT '{}'::jsonb
+-- GAMES TABLE
+create table public.games (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null unique check (length(room_code) = 4),
+  created_at timestamp with time zone default now(),
+  status text not null default 'waiting', 
+  winner player_role, 
+  player_x uuid not null references auth.users(id),  -- creator
+  player_o uuid null references auth.users(id)       -- nullable, joins later
 );
-CREATE INDEX idx_profiles_username ON profiles(username);
-CREATE TRIGGER set_updated_at_profiles
-BEFORE UPDATE ON profiles
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- GAMES table: tracks games metadata, current turn, winner, draw status
-CREATE TABLE games (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  mode game_mode NOT NULL,
-  winner_id UUID REFERENCES profiles(id),
-  is_draw BOOLEAN DEFAULT FALSE,
-  status game_status DEFAULT 'in_progress',
-  current_turn_user_id UUID REFERENCES profiles(id),
-  updated_at TIMESTAMPTZ DEFAULT now()
+create index on public.games (room_code);
+
+-- MOVES TABLE
+create table public.moves (
+  id uuid primary key default gen_random_uuid(),
+  game_id uuid not null references public.games(id) on delete cascade,
+  player player_role not null,
+  board jsonb not null, 
+  created_at timestamp with time zone default now()
 );
-CREATE INDEX idx_games_status ON games(status);
-CREATE INDEX idx_games_mode ON games(mode);
-CREATE INDEX idx_games_winner_id ON games(winner_id);
-CREATE TRIGGER set_updated_at_games
-BEFORE UPDATE ON games
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- GAME PARTICIPANTS table: players in each game, with side and computer flag
-CREATE TABLE game_participants (
-  game_id UUID REFERENCES games(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-  side TEXT CHECK (side IN ('X', 'O')) NOT NULL,
-  is_computer BOOLEAN DEFAULT FALSE,
-  PRIMARY KEY (game_id, user_id)
-);
-CREATE INDEX idx_game_participants_user_id ON game_participants(user_id);
-CREATE INDEX idx_game_participants_game_id ON game_participants(game_id);
+create index on public.moves (game_id);
+create index on public.moves (created_at);
 
--- GAME MOVES table: logs each move with full board snapshot
-CREATE TABLE game_moves (
-  id SERIAL PRIMARY KEY,
-  game_id UUID REFERENCES games(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES profiles(id),
-  turn_number INT NOT NULL,
-  board_state JSONB NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-CREATE INDEX idx_game_moves_game_id ON game_moves(game_id);
-CREATE INDEX idx_game_moves_user_id ON game_moves(user_id);
+-- =====================================
+-- ==== TRIGGER: auto-generate room_code
+-- =====================================
 
--- LEADERBOARD table: aggregated stats for quick leaderboard queries
-CREATE TABLE leaderboard (
-  profile_id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
-  total_wins INT DEFAULT 0,
-  total_losses INT DEFAULT 0,
-  total_draws INT DEFAULT 0,
-  last_played TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-CREATE INDEX idx_leaderboard_last_played ON leaderboard(last_played);
-CREATE TRIGGER set_updated_at_leaderboard
-BEFORE UPDATE ON leaderboard
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Function to assign a unique 4-character hex code
+create or replace function assign_room_code()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  new_code text;
+  try_count int := 0;
+begin
+  loop
+    try_count := try_count + 1;
+    exit when try_count > 10;
 
--- ENABLE RLS on all user-data tables
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE games ENABLE ROW LEVEL SECURITY;
-ALTER TABLE game_participants ENABLE ROW LEVEL SECURITY;
-ALTER TABLE game_moves ENABLE ROW LEVEL SECURITY;
-ALTER TABLE leaderboard ENABLE ROW LEVEL SECURITY;
+    new_code := lpad(to_hex(floor(random() * 65536)::int), 4, '0');
 
--- RLS Policies
+    -- Ensure uniqueness
+    exit when not exists (
+      select 1 from public.games where room_code = new_code
+    );
+  end loop;
 
--- Profiles
-CREATE POLICY "Users can select their own profile"
-  ON profiles FOR SELECT USING (id = (select auth.uid()));
-CREATE POLICY "Users can insert their own profile"
-  ON profiles FOR INSERT WITH CHECK (id = (select auth.uid()));
-CREATE POLICY "Users can update their own profile"
-  ON profiles FOR UPDATE USING (id = (select auth.uid()));
+  if try_count > 10 then
+    raise exception 'Failed to generate unique room code';
+  end if;
 
--- Games
-CREATE POLICY "Users can see games they participate in"
-  ON games FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = (select auth.uid())
+  new.room_code := new_code;
+  return new;
+end;
+$$;
+
+-- Trigger to auto-generate room_code if not provided
+create trigger set_room_code
+before insert on public.games
+for each row
+when (new.room_code is null)
+execute function assign_room_code();
+
+-- =====================================
+-- ============= RPCs ==================
+-- =====================================
+
+-- Make a move
+create or replace function public.make_move(
+  room_code text,
+  player player_role,
+  board jsonb
+) returns void
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  game_id uuid;
+begin
+  select id into game_id from public.games where room_code = make_move.room_code;
+
+  if game_id is null then
+    raise exception 'Invalid room code';
+  end if;
+
+  insert into public.moves (game_id, player, board)
+  values (game_id, make_move.player, make_move.board);
+end;
+$$;
+
+-- Join an open room
+create or replace function public.join_room(
+  room_code text,
+  user_id uuid
+) returns void
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  game_record record;
+begin
+  select * into game_record from public.games where room_code = join_room.room_code;
+
+  if game_record is null then
+    raise exception 'Invalid room code';
+  end if;
+
+  if game_record.player_o is not null then
+    raise exception 'Room already has player O';
+  end if;
+
+  update public.games
+  set player_o = join_room.user_id,
+      status = 'in_progress'
+  where id = game_record.id;
+end;
+$$;
+
+-- Leave a room
+create or replace function public.leave_room(
+  room_code text,
+  user_id uuid
+) returns void
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  game_record record;
+begin
+  select * into game_record from public.games where room_code = leave_room.room_code;
+
+  if game_record is null then
+    raise exception 'Invalid room code';
+  end if;
+
+  -- If creator leaves, delete the game
+  if game_record.player_x = leave_room.user_id then
+    delete from public.games where id = game_record.id;
+    return;
+  end if;
+
+  -- If opponent leaves, reset player_o and status
+  if game_record.player_o = leave_room.user_id then
+    update public.games
+    set player_o = null,
+        status = 'waiting'
+    where id = game_record.id;
+    return;
+  end if;
+
+  raise exception 'User not part of the game';
+end;
+$$;
+
+-- =====================================
+-- =========== RLS + POLICIES ==========
+-- =====================================
+
+-- Enable Row-Level Security
+alter table public.games enable row level security;
+alter table public.moves enable row level security;
+
+-- Games policy: Only authenticated players in the game can access it
+create policy "Allow authenticated players on games" on public.games
+  for all
+  using (
+    auth.uid() IS NOT NULL AND
+    (player_x = auth.uid() OR player_o = auth.uid())
+  );
+
+-- Moves policy: Only players in the associated game can access moves
+create policy "Allow authenticated players on moves" on public.moves
+  for all
+  using (
+    auth.uid() IS NOT NULL AND
+    exists (
+      select 1 from public.games
+      where id = public.moves.game_id
+        and (player_x = auth.uid() or player_o = auth.uid())
     )
   );
-CREATE POLICY "Users can insert games"
-  ON games FOR INSERT WITH CHECK (true);
-CREATE POLICY "Users can update games they participate in"
-  ON games FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = games.id AND gp.user_id = (select auth.uid())
-    )
-  );
 
--- Game Participants
-CREATE POLICY "Users can select their own game participations"
-  ON game_participants FOR SELECT USING (user_id = (select auth.uid()));
-CREATE POLICY "Users can insert their own game participation"
-  ON game_participants FOR INSERT WITH CHECK (user_id = (select auth.uid()));
-CREATE POLICY "Users can update their own game participation"
-  ON game_participants FOR UPDATE USING (user_id = (select auth.uid()));
+-- =====================================
+-- ============= OWNERSHIP =============
+-- =====================================
 
--- Game Moves
-CREATE POLICY "Users can select their own game moves"
-  ON game_moves FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = (select auth.uid())
-    )
-  );
-CREATE POLICY "Users can insert their own game moves"
-  ON game_moves FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM game_participants gp WHERE gp.game_id = game_moves.game_id AND gp.user_id = (select auth.uid())
-    )
-  );
-
--- Leaderboard
-CREATE POLICY "Users can select their own leaderboard entry"
-  ON leaderboard FOR SELECT USING (profile_id = (select auth.uid()));
-CREATE POLICY "Users can insert leaderboard entries"
-  ON leaderboard FOR INSERT WITH CHECK (profile_id = (select auth.uid()));
-CREATE POLICY "Users can update their own leaderboard entry"
-  ON leaderboard FOR UPDATE USING (profile_id = (select auth.uid()));
+alter function public.make_move(text, player_role, jsonb) owner to postgres;
+alter function public.join_room(text, uuid) owner to postgres;
+alter function public.leave_room(text, uuid) owner to postgres;
+alter function assign_room_code() owner to postgres;

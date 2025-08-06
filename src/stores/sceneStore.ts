@@ -2,12 +2,9 @@ import { create } from "zustand";
 
 export type Scene =
   | "menu"
-  | "leaderboard"
   | "vs-computer"
   | "local-multiplayer"
-  | "online-multiplayer"
-  | "signin"
-  | "settings";
+  | "online-multiplayer";
 
 interface SceneState {
   scene: Scene;

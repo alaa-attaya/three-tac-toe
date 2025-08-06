@@ -1,13 +1,12 @@
 "use client";
-import { useUserStore } from "@/stores/userStore";
+
 import { useSceneStore } from "@/stores/sceneStore";
 
 export default function Menu() {
-  const username = useUserStore((state) => state.username);
   const setScene = useSceneStore((state) => state.setScene);
 
   return (
-    <div className="tw:flex tw:flex-col tw:gap-4 tw:sm:gap-6 tw:py-2 tw:px-2 tw:items-center">
+    <div className="tw:flex tw:flex-col tw:gap-4 tw:sm:gap-6 tw:py-2 tw:px-2 tw:items-center tw:justify-center tw:min-h-[70vh]">
       <div className="tw:py-4 tw:px-4">
         <h2 className="tw:text-center tw:text-4xl tw:font-bold tw:text-[color:var(--tw-color-title)]">
           Menu
@@ -35,13 +34,6 @@ export default function Menu() {
           onClick={() => setScene("vs-computer")}
         >
           Computer
-        </button>
-        <button
-          type="button"
-          className="tw:btn-secondary"
-          onClick={() => setScene("leaderboard")}
-        >
-          Leaderboard
         </button>
       </div>
     </div>

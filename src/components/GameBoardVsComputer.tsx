@@ -26,7 +26,7 @@ export default function GameBoardVsComputer() {
   const [computerName, setComputerName] = useState("Computer");
   useEffect(() => {
     if (!gameStarted || gameOver) return;
-    const Computertimer = makeComputerMove();
+    makeComputerMove();
 
     setIsGameRunning(true);
     const initialTime = 5.05;

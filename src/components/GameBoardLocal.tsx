@@ -121,6 +121,25 @@ export default function GameBoardLocal() {
   return (
     <div className="tw:flex tw:flex-col tw:items-center tw:gap-4 tw:sm:gap-6 tw:w-full">
       <div className="tw:flex tw:flex-col tw:gap-2 tw:sm:gap-2">
+        {/* Usernames */}
+        <div
+          className={`tw:flex  tw:justify-between
+               tw:gap-4 tw:font-semibold tw:grid-display
+               tw:text-base tw:sm:text-lg tw:md:text-xl tw:lg:text-2xl`}
+        >
+          <span
+            className="tw:flex tw:flex-1 tw:justify-start tw:gap-4 tw:text-[color:var(--tw-color-x)] 
+            tw:w-26 tw:sm:w-30 tw:md:w-36 tw:lg:w-48 "
+          >
+            <span className="tw:flex tw:flex-1 tw:truncate">Player X</span>
+          </span>
+          <span
+            className="tw:flex tw:flex-1 tw:gap-4 tw:justify-end tw:text-[color:var(--tw-color-o)]  
+                tw:w-26  tw:sm:w-30 tw:md:w-36 tw:lg:w-48 "
+          >
+            <span className="tw:flex tw:truncate">Player O</span>
+          </span>
+        </div>
         {/* Scoreboard */}
 
         <div

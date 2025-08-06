@@ -1,42 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import supabase from "@/lib/supabase";
-import { useUserStore } from "@/stores/userStore";
-import { ProfileSchema } from "@/lib/validators";
 import ThemeToggle from "./ThemeToggle";
 import Link from "next/link";
-import { useGameState } from "@/stores/gameState";
-import { useSceneStore } from "@/stores/sceneStore";
 
 export default function TopBar() {
-  const username = useUserStore((state) => state.username);
-  const setUsername = useUserStore((state) => state.setUsername);
-  const isGameRunning = useGameState((state) => state.isGameRunning);
-  const setScene = useSceneStore((state) => state.setScene);
-  const onUserClick = () => setScene("settings");
-  const onSigninClick = () => setScene("signin");
-  useEffect(() => {
-    async function loadUsername() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", user.id)
-          .single();
-        if (!error && ProfileSchema.safeParse(data).success) {
-          setUsername(data.username);
-        }
-      } else {
-        setUsername(null);
-      }
-    }
-    loadUsername();
-  }, [setUsername]);
-
   return (
     <header className="tw:h-16 tw:w-full tw:flex tw:items-center tw:justify-between tw:px-6 tw:py-4 tw:shadow-md tw:bg-[var(--tw-color-topbar)] tw:transition-colors tw:relative  tw-border-b-[1.5px] tw:animate-neon-border">
       <div>
@@ -48,29 +15,6 @@ export default function TopBar() {
       </div>
       <div className="tw:flex tw:items-center tw:gap-4">
         <ThemeToggle />
-        {username ? (
-          <button
-            onClick={isGameRunning ? undefined : onUserClick}
-            disabled={isGameRunning}
-            type="button"
-            className={`tw:btn-primary  ${
-              isGameRunning ? " tw:cursor-not-allowed" : ""
-            }`}
-          >
-            {username}
-          </button>
-        ) : (
-          <button
-            onClick={isGameRunning ? undefined : onSigninClick}
-            disabled={isGameRunning}
-            type="button"
-            className={`tw:btn-primary  ${
-              isGameRunning ? " tw:cursor-not-allowed" : ""
-            }`}
-          >
-            Sign In
-          </button>
-        )}
       </div>
     </header>
   );
